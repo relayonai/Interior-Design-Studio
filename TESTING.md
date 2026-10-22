@@ -24,16 +24,15 @@ Once GitHub Pages is enabled, open the URL shown in repository **Settings → Pa
 
 One project is active at a time. Export a backup before replacing it; Undo can also recover the previous project within the same session. Never treat browser-local storage as your only backup. No wall/furniture collision checking is implemented.
 
-## Hosting activation
+## Hosting status
 
-The build is already on `gh-pages`. A repository owner must enable Pages because the GitHub integration rejected that API operation:
+GitHub Pages is enabled for `gh-pages` / (root). Its first site build succeeded, but the deployment runner was still queued at the last check. No owner approval was pending. Track the actual deployment here:
 
-1. Open https://github.com/relayonai/Interior-Design-Studio/settings/pages
-2. Under Build and deployment, choose **Deploy from a branch**.
-3. Choose **gh-pages** and **/ (root)**, then **Save**.
-4. Wait for the Pages build/deployment to complete and use the website URL GitHub displays.
+https://github.com/relayonai/Interior-Design-Studio/actions/runs/39823664841
 
-The expected URL is https://relayonai.github.io/Interior-Design-Studio/ but it must be checked after activation before being described as live. The static site contains no uploaded videos or keys. The original approximate flat geometry is included.
+GitHub reports the site URL as https://relayonai.github.io/Interior-Design-Studio/ . It returned 404 while deployment was queued; do not treat it as verified live until the job succeeds and the public browser tests pass. Publishing the cloud environment is a separate action.
+
+For future configuration changes, repository Settings → Pages should use **Deploy from a branch**, branch **gh-pages**, folder **/ (root)**. The static site contains no uploaded videos or keys. The original approximate flat geometry is included.
 
 ## Local fallback
 
