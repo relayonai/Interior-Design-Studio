@@ -7,7 +7,7 @@ const fixture=join(tmpdir(),`flat-studio-video-${process.pid}.mp4`);
 test.beforeAll(()=>execFileSync('ffmpeg',['-hide_banner','-loglevel','error','-f','lavfi','-i','testsrc2=size=320x240:rate=10','-t','2','-c:v','libx264','-pix_fmt','yuv420p','-y',fixture]));
 test.afterAll(()=>rmSync(fixture,{force:true}));
 test('a new video produces frames and a reusable user-guided project',async({page})=>{
- const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('/');
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('./');
  await page.getByRole('button',{name:'New from video'}).click();
  await expect(page.locator('dialog')).toBeVisible();
  await page.locator('#walkthrough-files').setInputFiles(fixture);
@@ -37,7 +37,7 @@ test('a new video produces frames and a reusable user-guided project',async({pag
  expect(errors).toEqual([]);
 });
 test('unsupported video gives a useful error without replacing the current project',async({page})=>{
- await page.goto('/');await page.getByRole('button',{name:'New from video'}).click();
+ await page.goto('./');await page.getByRole('button',{name:'New from video'}).click();
  await page.locator('#walkthrough-files').setInputFiles({name:'broken.mp4',mimeType:'video/mp4',buffer:Buffer.from('not a video')});
  await expect(page.locator('#video-message')).toContainText('could not be decoded');
  await page.getByRole('button',{name:'Close video workflow'}).click();await expect(page.locator('.area-num')).toContainText('117');

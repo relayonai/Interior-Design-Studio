@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 const key='flat-studio-layout-v1';
 test('furniture edit, undo, reload, floor switching, export and import',async({page})=>{
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
- await page.goto('/');await expect(page.locator('canvas')).toBeVisible();
+ await page.goto('./');await expect(page.locator('canvas')).toBeVisible();
  await page.getByRole('button',{name:'Add Lounge chair',exact:true}).click();
  await expect(page.locator('[data-prop="w"]')).toHaveValue('0.85');
  await page.locator('[data-prop="w"]').fill('1.1');await page.locator('[data-prop="w"]').dispatchEvent('change');
@@ -24,14 +24,14 @@ test('furniture edit, undo, reload, floor switching, export and import',async({p
  await page.screenshot({path:'/workspace/video-review/studio-desktop.png',fullPage:true});expect(errors).toEqual([]);
 });
 test('mobile layout has usable controls and no horizontal overflow',async({page})=>{
- await page.setViewportSize({width:390,height:844});await page.goto('/');
+ await page.setViewportSize({width:390,height:844});await page.goto('./');
  await expect(page.locator('canvas')).toBeVisible();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
  await page.getByRole('button',{name:'Add Sofa',exact:true}).click();await expect(page.locator('[data-prop="w"]')).toHaveValue('2.2');
  await page.screenshot({path:'/workspace/video-review/studio-mobile.png',fullPage:true});
 });
 test('dragging in plan view changes furniture position and supports undo',async({page})=>{
- await page.goto('/');await page.getByRole('button',{name:'Floor plan',exact:true}).click();
+ await page.goto('./');await page.getByRole('button',{name:'Floor plan',exact:true}).click();
  await page.getByRole('button',{name:'Add Lounge chair',exact:true}).click();
  const canvas=await page.locator('canvas').boundingBox();
  const x=canvas.x+canvas.width/2,y=canvas.y+canvas.height/2+(2-3.4)*canvas.height/13.6;

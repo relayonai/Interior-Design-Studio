@@ -52,3 +52,5 @@ For development, use the source branch containing this code; `gh-pages` is gener
 The reusable project schema separates geometry from video references and rendering. A future reconstruction service should produce the same validated floors/rooms, retain camera poses and uncertainty, and offer correction before furnishing. It needs multi-view reconstruction and/or a vision model, processing capacity, and representative validation videos. No AI reconstruction endpoint or credentials are currently configured. The present frame-sampling workflow is not a substitute for that stage.
 
 See [TESTING.md](TESTING.md) for an end-user feature checklist and the exact one-time Pages activation steps.
+
+To validate an actual deployed site with the same browser interaction/video tests, set `FLAT_STUDIO_TEST_URL` to its full HTTPS URL (with a trailing slash), then run `npm run test:e2e -- e2e/studio.spec.js e2e/video.spec.js`. No local development server is started in that mode.
