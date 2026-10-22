@@ -1,0 +1,22 @@
+{
+  "name": "interior-design-studio",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0",
+    "test": "node --test",
+    "test:e2e": "playwright test",
+    "package:offline": "npm run build && node scripts/package-offline.mjs",
+    "deploy:pages": "npm run build && node scripts/publish-pages.mjs"
+  },
+  "dependencies": {
+    "three": "^0.180.0"
+  },
+  "devDependencies": {
+    "vite": "^7.1.0",
+    "@playwright/test": "^1.56.0"
+  }
+}

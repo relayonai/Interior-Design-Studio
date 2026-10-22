@@ -1,0 +1,12 @@
+import { readFile, writeFile, readdir, mkdir } from 'node:fs/promises';
+import path from 'node:path';
+const assets=await readdir('dist/assets');
+const js=await readFile(path.join('dist/assets',assets.find(f=>f.endsWith('.js'))),'utf8');
+const css=await readFile(path.join('dist/assets',assets.find(f=>f.endsWith('.css'))),'utf8');
+let html=await readFile('dist/index.html','utf8');
+html=html.replace(/<script\b[^>]*src="[^"]+"[^>]*><\/script>/g,'').replace(/<link\b[^>]*href="[^"]+\.css"[^>]*>/g,'');
+html=html.replace('</head>',`<style>${css.replace(/<\/style/gi,'<\\/style')}</style></head>`);
+html=html.replace('</body>',`<script type="module">${js.replace(/<\/script/gi,'<\\/script')}</script></body>`);
+await mkdir('dist/offline',{recursive:true});
+await writeFile('dist/offline/Flat-Studio.html',html);
+console.log('Packaged dist/offline/Flat-Studio.html (no server or network required)');
