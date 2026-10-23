@@ -1,39 +1,32 @@
-# Try the MVP
+# Test the footage-first app
 
-Once GitHub Pages is enabled, open the URL shown in repository **Settings → Pages** in Chrome or Edge. Do not use ChatGPT's file preview. Publishing the cloud development environment is separate from publishing the website.
+Open https://relayonai.github.io/Interior-Design-Studio/ in Chrome or Edge. The initial view should say **Your flat. As it really is.**, with an empty private video player, not an invented flat model.
 
-## Original-flat example
+## Real footage
 
-- Switch Lower/Upper and 3D/Floor plan.
-- Drag empty space to orbit and scroll to zoom. Try the zoom and camera-reset buttons.
-- Add furniture from every library category. Select and drag a piece; edit width, depth, height, rotation, colour and X/Z position.
-- Try Rotate 90°, Copy and Delete. Undo and Redo should restore changes.
-- Change wall colour and timber tone.
-- Export JSON, make changes, then import that JSON. Reload to check local browser saving.
+- Open the local clips in walkthrough order. Nothing is uploaded.
+- Choose a clip; rename it if useful. Set start/end seconds to skip entry sections, then Play selected range.
+- Pause at a doorway, name the observation and add a room checkpoint. Selecting the checkpoint returns to that actual video time. Checkpoints are not room coordinates or proof of adjacency.
+- Capture this frame, or Build contact sheet to decode 12 frames from the trimmed clip. Choose a frame in the strip to inspect it.
 
-## A different walkthrough
+## Actual-photo colour study
 
-- Click **New from video**, choose MP4/MOV clips, and preview them.
-- Set start/end seconds to skip the entrance or unwanted footage; click **Extract 8 frames** for each clip.
-- Select a frame. Use it beside the model or create a new named project with your own area, level count and shape.
-- This creates a blank shell, **not automatically detected rooms**. Add rooms on each level and adjust their names, positions, sizes and door sides while consulting the references.
-- Change floor width/depth if needed; the displayed total area recalculates. The starting split is equal across levels and is an assumption.
-- Add furniture on the new floors, save/export the project, and reload it. Videos and extracted images are session-only; project geometry and furniture persist.
-- Open **New from video** again to choose another reference or reattach footage.
-- Invalid video formats and out-of-bounds rooms should produce useful errors.
+- In Still / design, click Mark a surface, then click at least 3 points around a visible wall/surface and Apply outline.
+- Change colour and strength. Show original toggles the overlay off; Show changes restores it.
+- Export this image saves the currently displayed photographic study. This is a manually masked 2D colour study, not a 3D renovation.
+- Save on this device, reload, and confirm videos, checkpoints, photographs and masks restore. Clear saved footage removes the browser's saved session, not the original files; the current in-memory session remains until removed/closed.
 
-One project is active at a time. Export a backup before replacing it; Undo can also recover the previous project within the same session. Never treat browser-local storage as your only backup. No wall/furniture collision checking is implemented.
+## Genuine sparse 3D
 
-## Hosting status
+- Open private 3D scan with a `scan.json` produced by the reconstruction script. Imported scan content remains private.
+- Orbit the points. Select registered camera thumbnails to see the actual photograph from that camera and toggle back to the sparse scene.
+- Change component: separate components must remain independent. No whole-flat arrangement or metric scale is inferred.
+- To generate scans directly from the app on your own computer, follow scripts/reconstruction/README.md and use the local processor. The Reconstruct on this computer button appears only when served by that loopback service.
 
-GitHub Pages is enabled for `gh-pages` / (root). Its first site build succeeded, but the deployment runner was still queued at the last check. No owner approval was pending. Track the actual deployment here:
+## Existing planner
 
-https://github.com/relayonai/Interior-Design-Studio/actions/runs/39823664841
+Planning workspace is an explicitly unverified sketch. The original floor layout is not accurate and is no longer the default representation of your flat. Furniture and manual-plan editing remain available so existing saved work is preserved.
 
-GitHub reports the site URL as https://relayonai.github.io/Interior-Design-Studio/ . It returned 404 while deployment was queued; do not treat it as verified live until the job succeeds and the public browser tests pass. Publishing the cloud environment is a separate action.
+## Limits
 
-For future configuration changes, repository Settings → Pages should use **Deploy from a branch**, branch **gh-pages**, folder **/ (root)**. The static site contains no uploaded videos or keys. The original approximate flat geometry is included.
-
-## Local fallback
-
-Check out `feat/video-assisted-planner` (not `gh-pages`, which is generated output), install Node.js 22.12+, then run `npm ci` and `npm run dev`. Open the printed address on that same computer. If 3D does not start, ensure the browser supports WebGL and graphics acceleration.
+This update visualizes actual source material and adds partial sparse reconstruction. It does not yet provide a complete photorealistic, measured, furniture-editable 3D flat. The public static site cannot run the Python reconstruction job. Real room placements still need reconstruction continuity and/or verified measurements; 117 m² alone is insufficient.

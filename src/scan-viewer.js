@@ -1,0 +1,21 @@
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+export function createScanViewer(container){
+ const scene=new THREE.Scene();scene.background=new THREE.Color('#15201c');
+ const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));container.append(renderer.domElement);
+ const camera=new THREE.PerspectiveCamera(50,1,.01,10000);camera.position.set(15,12,16);
+ const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;
+ let group=new THREE.Group(),cloud=null,active=true,showCameras=true;scene.add(group);
+ function resize(){const w=container.clientWidth,h=container.clientHeight;if(!w||!h)return;renderer.setSize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix();}
+ const observer=new ResizeObserver(resize);observer.observe(container);
+ function clear(){group.traverse(o=>{o.geometry?.dispose();if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>m.dispose());});scene.remove(group);group=new THREE.Group();scene.add(group);}
+ function home(){if(!cloud)return;const positions=cloud.geometry.attributes.position,axes=[[],[],[]];for(let i=0;i<positions.count;i++){const p=new THREE.Vector3().fromBufferAttribute(positions,i).applyMatrix4(group.matrixWorld);axes[0].push(p.x);axes[1].push(p.y);axes[2].push(p.z);}const low=[],high=[];for(let a=0;a<3;a++){axes[a].sort((x,y)=>x-y);low[a]=axes[a][Math.floor(axes[a].length*.02)];high[a]=axes[a][Math.min(axes[a].length-1,Math.floor(axes[a].length*.98))];}const bounds=new THREE.Box3(new THREE.Vector3(...low),new THREE.Vector3(...high)),center=bounds.getCenter(new THREE.Vector3()),size=Math.max(1,bounds.getSize(new THREE.Vector3()).length());controls.target.copy(center);camera.position.copy(center).add(new THREE.Vector3(size*.7,size*.5,size*.8));camera.near=Math.max(.001,size/10000);camera.far=Math.max(100,size*30);camera.updateProjectionMatrix();}
+ function setComponent(component){clear();const count=component.points.length/6,positions=new Float32Array(count*3),colors=new Float32Array(count*3),color=new THREE.Color();for(let i=0;i<count;i++){positions.set(component.points.slice(i*6,i*6+3),i*3);color.setRGB(...component.points.slice(i*6+3,i*6+6).map(v=>v/255),THREE.SRGBColorSpace);colors.set([color.r,color.g,color.b],i*3);}const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(positions,3));geo.setAttribute('color',new THREE.BufferAttribute(colors,3));cloud=new THREE.Points(geo,new THREE.PointsMaterial({size:.055,vertexColors:true,sizeAttenuation:true}));group.add(cloud);
+  const averageUp=new THREE.Vector3();for(const item of component.cameras){averageUp.add(new THREE.Vector3(item.matrix[4],item.matrix[5],item.matrix[6]));}if(averageUp.length()>0.01)group.quaternion.setFromUnitVectors(averageUp.normalize(),new THREE.Vector3(0,1,0));group.updateMatrixWorld(true);
+  for(const item of component.cameras){const m=new THREE.Matrix4().fromArray(item.matrix),points=[[0,0,0],[-.18,-.12,-.25],[.18,-.12,-.25],[0,0,0],[.18,.12,-.25],[-.18,.12,-.25],[0,0,0],[-.18,-.12,-.25],[-.18,.12,-.25],[.18,.12,-.25],[.18,-.12,-.25]];const g=new THREE.BufferGeometry().setFromPoints(points.map(p=>new THREE.Vector3(...p).applyMatrix4(m)));const line=new THREE.Line(g,new THREE.LineBasicMaterial({color:'#83bba0',transparent:true,opacity:.5}));line.userData.frustum=true;line.visible=showCameras;group.add(line);}
+  home();resize();
+ }
+ function goToCamera(item){const m=new THREE.Matrix4().multiplyMatrices(group.matrixWorld,new THREE.Matrix4().fromArray(item.matrix));m.decompose(camera.position,camera.quaternion,new THREE.Vector3());camera.fov=item.fov;camera.updateProjectionMatrix();controls.target.copy(camera.position).add(new THREE.Vector3(0,0,-1).applyQuaternion(camera.quaternion).multiplyScalar(2));controls.update();}
+ renderer.setAnimationLoop(()=>{if(!active)return;controls.update();renderer.render(scene,camera);});
+ return {setComponent,goToCamera,home,setActive(value){active=value;if(value)resize();},setCameras(value){showCameras=value;group.children.filter(o=>o.userData.frustum).forEach(o=>o.visible=value);},setPointSize(value){if(cloud)cloud.material.size=value;},dispose(){observer.disconnect();renderer.setAnimationLoop(null);controls.dispose();clear();renderer.dispose();}};
+}

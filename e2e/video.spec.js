@@ -7,7 +7,7 @@ const fixture=join(tmpdir(),`flat-studio-video-${process.pid}.mp4`);
 test.beforeAll(()=>execFileSync('ffmpeg',['-hide_banner','-loglevel','error','-f','lavfi','-i','testsrc2=size=320x240:rate=10','-t','2','-c:v','libx264','-pix_fmt','yuv420p','-y',fixture]));
 test.afterAll(()=>rmSync(fixture,{force:true}));
 test('a new video produces frames and a reusable user-guided project',async({page})=>{
- const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('./');
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('./');await page.locator('#mode-planning').click();
  await page.getByRole('button',{name:'New from video'}).click();
  await expect(page.locator('dialog')).toBeVisible();
  await page.locator('#walkthrough-files').setInputFiles(fixture);
@@ -30,14 +30,14 @@ test('a new video produces frames and a reusable user-guided project',async({pag
  const stored=await page.evaluate(()=>JSON.parse(localStorage.getItem('flat-studio-layout-v1')));
  expect(stored.project.sources[0].start).toBe(.3);expect(stored.items[0].floor).toBe(2);expect(stored.project.floors[0].rooms[0].name).toBe('Study');
  expect(stored.project.sources[0]).not.toHaveProperty('frames');
- await page.reload();await expect(page.locator('.left>h1')).toHaveText('Second apartment');await expect(page.locator('#rooms')).toContainText('Study');
+ await page.reload();await page.locator('#mode-planning').click();await expect(page.locator('.left>h1')).toHaveText('Second apartment');await expect(page.locator('#rooms')).toContainText('Study');
  await expect(page.locator('#reference-panel')).not.toBeVisible();
  await page.locator('[data-level="width"]').fill('2');await page.locator('[data-level="width"]').dispatchEvent('change');
  await expect(page.locator('.editor-error')).toContainText('outside the floor');
  expect(errors).toEqual([]);
 });
 test('unsupported video gives a useful error without replacing the current project',async({page})=>{
- await page.goto('./');await page.getByRole('button',{name:'New from video'}).click();
+ await page.goto('./');await page.locator('#mode-planning').click();await page.getByRole('button',{name:'New from video'}).click();
  await page.locator('#walkthrough-files').setInputFiles({name:'broken.mp4',mimeType:'video/mp4',buffer:Buffer.from('not a video')});
  await expect(page.locator('#video-message')).toContainText('could not be decoded');
  await page.getByRole('button',{name:'Close video workflow'}).click();await expect(page.locator('.area-num')).toContainText('117');

@@ -12,6 +12,7 @@ const url='http://127.0.0.1:5173/offline-mvp-test';
 const html=await readFile('dist/offline/Flat-Studio.html','utf8');
 await page.route(url,route=>route.fulfill({status:200,contentType:'text/html',body:html}));
 await page.goto(url);
+await page.locator('#mode-planning').click();
 await page.locator('canvas').waitFor();
 for(const type of ['Sofa','Lounge chair','Coffee table','Dining table','Dining chair','Double bed','Wardrobe','Desk','Woven rug','Floor plant'])await page.getByRole('button',{name:`Add ${type}`,exact:true}).click();
 await page.locator('[data-prop="w"]').fill('0.8');await page.locator('[data-prop="w"]').dispatchEvent('change');
@@ -20,7 +21,7 @@ await page.getByRole('button',{name:'Copy',exact:true}).click();await page.getBy
 await page.getByRole('button',{name:'Undo',exact:true}).click();await page.getByRole('button',{name:'Redo',exact:true}).click();
 await page.locator('#wall-color').fill('#badaad');await page.locator('#wall-color').dispatchEvent('change');
 await page.locator('#floor-color').fill('#987755');await page.locator('#floor-color').dispatchEvent('change');
-await page.reload();assert.equal(await page.locator('#wall-color').inputValue(),'#badaad');
+await page.reload();await page.locator('#mode-planning').click();assert.equal(await page.locator('#wall-color').inputValue(),'#badaad');
 await page.locator('[data-floor="1"]').click();await page.getByRole('button',{name:'Floor plan',exact:true}).click();
 await page.getByRole('button',{name:'Zoom in',exact:true}).click();await page.getByRole('button',{name:'Zoom out',exact:true}).click();await page.getByRole('button',{name:'Reset camera',exact:true}).click();
 const downloadPromise=page.waitForEvent('download');await page.getByRole('button',{name:'Export layout'}).click();const download=await downloadPromise;const downloadPath=await download.path();

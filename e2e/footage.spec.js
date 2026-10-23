@@ -1,0 +1,48 @@
+import {test,expect} from '@playwright/test';
+import {execFileSync} from 'node:child_process';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {rmSync} from 'node:fs';
+const video=join(tmpdir(),`flat-footage-${process.pid}.mp4`);
+test.beforeAll(()=>execFileSync('ffmpeg',['-hide_banner','-loglevel','error','-f','lavfi','-i','testsrc2=size=480x320:rate=10','-t','3','-c:v','libx264','-pix_fmt','yuv420p','-y',video]));
+test.afterAll(()=>rmSync(video,{force:true}));
+test('footage is primary: actual frames, surface masks, checkpoints and private reload',async({page})=>{
+ const errors=[],external=[];page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>{if(r.method()==='POST'||r.method()==='PUT')external.push(r.url());});
+ await page.goto('./');await expect(page.locator('#footage-app')).toHaveAttribute('data-ready','true');
+ await expect(page.locator('#planner-app')).not.toBeVisible();
+ await page.locator('#private-video-input').setInputFiles(video);await expect(page.locator('.source-clip')).toHaveCount(1);
+ await expect(page.locator('#real-video')).toHaveJSProperty('readyState',4);
+ await page.locator('#clip-start').fill('0.5');await page.locator('#clip-start').dispatchEvent('change');
+ await page.locator('#clip-end').fill('2.5');await page.locator('#clip-end').dispatchEvent('change');
+ await page.locator('#checkpoint-room').fill('Living room doorway');await page.locator('#checkpoint-floor').selectOption('Lower');await page.locator('#mark-checkpoint').click();
+ await expect(page.locator('#footage-checkpoints')).toContainText('Living room doorway');
+ await page.locator('#capture-frame').click();await expect(page.locator('#real-still')).toBeVisible();
+ await expect(page.locator('#real-still')).toHaveJSProperty('naturalWidth',480);
+ await page.locator('#start-surface').click();const rect=await page.locator('#real-still').boundingBox();
+ for(const [x,y] of [[.2,.2],[.7,.2],[.7,.7],[.2,.7]])await page.mouse.click(rect.x+rect.width*x,rect.y+rect.height*y);
+ await page.locator('#finish-surface').click();await expect(page.locator('#surface-overlay polygon')).toHaveCount(1);
+ await page.locator('#surface-color').fill('#668899');await page.locator('#surface-color').dispatchEvent('input');await expect(page.locator('#surface-overlay polygon')).toHaveAttribute('fill','#668899');
+ await page.locator('#compare-surface').click();await expect(page.locator('#surface-overlay')).not.toBeVisible();await page.locator('#compare-surface').click();
+ const download=page.waitForEvent('download');await page.locator('#export-photo').click();expect((await download).suggestedFilename()).toBe('flat-studio-photo-study.png');
+ await page.locator('#save-private').click();await expect(page.locator('#footage-status')).toContainText('Session saved privately');
+ await page.reload();await expect(page.locator('#footage-app')).toHaveAttribute('data-ready','true');await expect(page.locator('.source-clip')).toHaveCount(1);await expect(page.locator('#footage-checkpoints')).toContainText('Living room doorway');
+ await page.locator('[data-photo]').first().click();await expect(page.locator('#surface-overlay polygon')).toHaveCount(1);
+ await page.locator('[data-footage-view="video"]').click();await page.locator('#contact-sheet').click();await expect(page.locator('#footage-filmstrip button')).toHaveCount(13,{timeout:30000});
+ await page.locator('#mode-planning').click();await expect(page.locator('.badge')).toContainText('ROOM POSITIONS NOT RECONSTRUCTED');await page.locator('#mode-footage').click();
+ expect(errors).toEqual([]);expect(external).toEqual([]);
+});
+test('scan components and camera photographs are imported locally',async({page})=>{
+ await page.goto('./');await expect(page.locator('#footage-app')).toHaveAttribute('data-ready','true');
+ const jpeg=await page.evaluate(()=>{const c=document.createElement('canvas');c.width=20;c.height=20;c.getContext('2d').fillRect(0,0,20,20);return c.toDataURL('image/jpeg');});
+ const scan={format:'flat-studio-sfm-v1',sourceFrames:30,components:[{id:'one',points:[0,0,0,255,0,0,1,0,0,0,255,0,0,1,0,0,0,255],cameras:[{name:'photo',matrix:[1,0,0,0,0,1,0,0,0,0,1,0,0,0,3,1],fov:50,image:jpeg,clip:1,seconds:2}]},{id:'two',points:[0,0,0,255,255,255,2,2,2,128,128,128],cameras:[]}]};
+ await page.locator('#private-scan-input').setInputFiles({name:'scan.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(scan))});
+ await expect(page.locator('#scan-canvas canvas')).toBeVisible();await expect(page.locator('#footage-controls')).toContainText('3 coloured points');
+ await page.locator('[data-scan-camera="0"]').click();await expect(page.locator('#scan-camera-image')).toBeVisible();await page.locator('#scan-show-photo').click();await expect(page.locator('#scan-camera-image')).not.toBeVisible();
+ await page.locator('#scan-component').selectOption('1');await expect(page.locator('#footage-controls')).toContainText('2 coloured points');
+ await page.locator('#private-scan-input').setInputFiles({name:'bad.json',mimeType:'application/json',buffer:Buffer.from('{}')});await expect(page.locator('#footage-status')).toContainText('Scan could not be opened');
+});
+test('mobile footage workspace fits and has no misleading default plan',async({page})=>{
+ await page.setViewportSize({width:390,height:844});await page.goto('./');await expect(page.locator('#footage-empty')).toBeVisible();
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ await page.locator('#private-video-input').setInputFiles(video);await expect(page.locator('.source-clip')).toHaveCount(1);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+});
